@@ -1,6 +1,8 @@
 import streamlit as st #top-to-botton rerun model
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
+import plotly.express as px
 
 st.set_page_config(
     page_title="Data Science App",
@@ -70,9 +72,13 @@ data= pd.DataFrame(
 st.line_chart(data)
 st.altair_chart(data)
 st.bar_chart(data)
-file=st.file_uploader("## **Order**")
+@st.cache_data #reused dont need to rerun everytime
+def load(file):
+    return pd.read_excel(file)
+file=st.file_uploader(label="# **Order**",type="xlsx")
 if file is not None:
-    order = pd.read_excel(file)
+    order=load(file)
+    order["total price"] = pd.to_numeric(order["total price"])
     tr=order["total price"].sum().round(2)
     oc=len(order)
     st.metric(label="Total Revenue", value=f"₹{tr}", delta=f"{oc} Orders")
@@ -80,4 +86,32 @@ if file is not None:
     order = order.set_index("order date")
     daily_sales = order.groupby("order date")["total price"].sum()
     st.line_chart(daily_sales)
-    
+    fig, ax = plt.subplots()
+    ax.plot(daily_sales)
+    ax.set_title("Sales Trend")
+    st.pyplot(fig)
+    disc = order.groupby("order date")["discount"].sum()
+    fig = px.line(disc)
+    st.plotly_chart(fig)
+
+name = st.text_input("ENTER YOUR NAME: ")
+if name and st.checkbox("I agree to terms") and st.button("submit"):
+    st.chat_message("assistant").write(f"Hello {name}! This is demo analytics")
+choice = st.radio("Select gender", ["Male", "Female", "Other"])
+st.write("You selected:", choice)
+country = st.selectbox("Choose country", ["India", "USA", "UK"])
+st.write(country)
+bio = st.text_area("Write about yourself")
+st.write(bio)
+age = st.slider("Select Age", 0, 100)
+range_val = st.slider("Select Salary", 10000, 500000, (20000, 80000))
+st.write(age,range_val)
+import datetime
+date = st.date_input("Select date")
+age = (date.today().year - date.year)
+st.write(f"You are **{age} years old**")
+if "count" not in st.session_state:
+    st.session_state.count = 0
+st.session_state.count += 1
+st.write(f"Rerun count: {st.session_state.count}")
+
