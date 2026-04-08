@@ -5,3 +5,5 @@ openpyxl
 matplotlib
 plotly
 google.generativeai
+sklearn
+prophet
